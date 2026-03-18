@@ -33,6 +33,13 @@ class Post(db.Model):
     likes = db.relationship('Like', backref='post', lazy=True)
     favorites = db.relationship('Favorite', backref='post', lazy=True)
     tips = db.relationship('Tip', backref='post', lazy=True)
+    images = db.relationship('PostImage', backref='post', lazy=True, cascade="all, delete-orphan")
+
+class PostImage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(200), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    date_uploaded = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)

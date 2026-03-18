@@ -29,7 +29,19 @@
                     </div>
                 </div>
 
-                <div class="card-text mb-5" style="white-space: pre-wrap; font-size: 1.1rem; line-height: 1.8;">{{ post.content }}</div>
+                <div class="card-text mb-4" style="white-space: pre-wrap; font-size: 1.1rem; line-height: 1.8;">{{ post.content }}</div>
+
+                {% if post.images %}
+                    <div class="row g-3 mb-5">
+                        {% for image in post.images %}
+                            <div class="col-md-4">
+                                <a href="{{ url_for('main.uploaded_file', filename=image.filename) }}" class="custom-lightbox-trigger">
+                                    <img src="{{ url_for('main.uploaded_file', filename=image.filename) }}" class="img-fluid rounded shadow-sm border w-100 h-100" style="object-fit: cover; max-height: 400px; cursor: pointer;" alt="帖子图片">
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
                 <!-- 交互按钮：点赞、收藏、打赏 -->
                 <div class="d-flex justify-content-center gap-3 mb-5 py-3 border-top border-bottom">
@@ -126,7 +138,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-target="#tipModal" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
                     <button type="submit" class="btn btn-primary">确认打赏</button>
                 </div>
             </form>

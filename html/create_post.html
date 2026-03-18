@@ -3,12 +3,62 @@
 {% block title %}发布动态 - 游戏社区{% endblock %}
 
 {% block content %}
+<style>
+    .image-preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 15px;
+    }
+    .image-preview-item {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid #eee;
+        transition: all 0.3s ease;
+    }
+    .image-preview-item:hover {
+        transform: scale(1.05);
+        border-color: #0d6efd;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .image-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .remove-image-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 24px;
+        height: 24px;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 10;
+        transition: background 0.2s;
+    }
+    .remove-image-btn:hover {
+        background: #dc3545;
+    }
+</style>
+
 <div class="row">
     <div class="col-md-8 mx-auto">
         <div class="card shadow-sm mt-5">
             <div class="card-body p-5">
                 <h3 class="card-title text-center mb-4 fw-bold text-primary">📝 发布新动态</h3>
-                <form method="POST">
+                <form id="post-form" method="POST" enctype="multipart/form-data">
                     <div class="mb-4">
                         <label for="title" class="form-label fw-bold">标题</label>
                         <input type="text" name="title" class="form-control form-control-lg" id="title" placeholder="请输入标题" required>
@@ -16,6 +66,15 @@
                     <div class="mb-4">
                         <label for="content" class="form-label fw-bold">内容</label>
                         <textarea name="content" class="form-control" id="content" rows="10" placeholder="分享你的游戏动态或想法..." required></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="images" class="form-label fw-bold">上传图片 (最多5张)</label>
+                        <input type="file" name="images" class="form-control" id="images" accept="image/*" multiple>
+                        <div class="form-text text-muted">支持多选，单次发布最多支持5张图片。</div>
+                        
+                        <!-- 图片预览容器 -->
+                        <div id="image-preview-container" class="image-preview-container"></div>
                     </div>
                     
                     {% if current_user.is_admin %}
@@ -34,4 +93,75 @@
         </div>
     </div>
 </div>
+
+<script>
+ document.addEventListener('DOMContentLoaded', function() {
+     const imagesInput = document.getElementById('images');
+     const previewContainer = document.getElementById('image-preview-container');
+     const form = document.getElementById('post-form');
+     
+     // 存储选中的文件对象
+     let selectedFiles = [];
+
+     imagesInput.addEventListener('change', function(e) {
+         const files = Array.from(e.target.files);
+         
+         // 过滤并添加新文件
+         const validFiles = files.filter(file => file.type.startsWith('image/'));
+         
+         // 限制最多 5 张图片
+         if (selectedFiles.length + validFiles.length > 5) {
+             alert('最多只能上传5张图片！');
+             imagesInput.value = '';
+             return;
+         }
+
+         selectedFiles = [...selectedFiles, ...validFiles];
+         renderPreviews();
+         
+         // 清空输入框，防止同一个文件无法再次触发 change 事件
+         imagesInput.value = '';
+     });
+
+     function renderPreviews() {
+         previewContainer.innerHTML = '';
+         
+         selectedFiles.forEach((file, index) => {
+             const item = document.createElement('div');
+             item.className = 'image-preview-item';
+             
+             // 使用 URL.createObjectURL 是同步的，保证了渲染顺序与数组顺序完全一致
+             const objectUrl = URL.createObjectURL(file);
+             
+             item.innerHTML = `
+                 <img src="${objectUrl}" alt="preview">
+                 <button type="button" class="remove-image-btn" title="删除图片">&times;</button>
+             `;
+             
+             // 绑定删除按钮事件
+             item.querySelector('.remove-image-btn').addEventListener('click', function() {
+                 // 释放内存
+                 URL.revokeObjectURL(objectUrl);
+                 // 从数组中删除
+                 selectedFiles.splice(index, 1);
+                 // 重新渲染
+                 renderPreviews();
+             });
+             
+             previewContainer.appendChild(item);
+         });
+     }
+
+     // 拦截表单提交
+     form.addEventListener('submit', function(e) {
+         // 使用 DataTransfer 对象将 selectedFiles 重新设置回 input.files
+         const dataTransfer = new DataTransfer();
+         selectedFiles.forEach(file => {
+             dataTransfer.items.add(file);
+         });
+         
+         imagesInput.files = dataTransfer.files;
+     });
+ });
+ </script>
 {% endblock %}

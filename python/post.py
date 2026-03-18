@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from python.models import db, Post, Comment, Like, Favorite, Tip, User
+from python.models import db, Post, Comment, Like, Favorite, Tip, User, PostImage
+from python.utils import save_post_images
 
 post_bp = Blueprint('post', __name__)
 
@@ -18,6 +19,15 @@ def create_post():
         
         post = Post(title=title, content=content, author=current_user, is_news=is_news)
         db.session.add(post)
+        
+        # 处理图片上传
+        files = request.files.getlist('images')
+        if files:
+            filenames = save_post_images(files)
+            for filename in filenames:
+                post_image = PostImage(filename=filename, post=post)
+                db.session.add(post_image)
+        
         db.session.commit()
         flash('发布成功！', 'success')
         return redirect(url_for('main.index') if is_news else url_for('profile.profile', username=current_user.username))

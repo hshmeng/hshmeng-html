@@ -18,7 +18,7 @@ def uploaded_file(filename):
 
 @main_bp.route('/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(current_app.root_path, '..', 'html'), 'logo.ico', mimetype='image/vnd.microsoft.icon')
+    return send_from_directory(os.path.join(current_app.root_path, 'html'), 'logo.ico', mimetype='image/vnd.microsoft.icon')
 
 # API 接口用于下拉加载更多所有帖子
 @main_bp.route('/api/posts')

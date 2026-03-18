@@ -6,6 +6,7 @@
     <title>{% block title %}游戏交流社区{% endblock %}</title>
     <link rel="icon" href="{{ url_for('main.favicon') }}" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
     <style>
         body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .navbar { margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,.1); }
@@ -68,5 +69,42 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const lightbox = document.getElementById('custom-lightbox');
+        const lightboxImg = document.getElementById('custom-lightbox-img');
+        const closeBtn = document.getElementById('custom-lightbox-close');
+
+        // Use event delegation to capture clicks on post images
+        document.body.addEventListener('click', (e) => {
+            // Check if the clicked element is our trigger
+            if (e.target.closest('.custom-lightbox-trigger')) {
+                e.preventDefault(); // Stop link from navigating
+                
+                // Get the high-res image URL from the link's href
+                const imgSrc = e.target.closest('.custom-lightbox-trigger').href;
+                
+                lightboxImg.src = imgSrc;
+                lightbox.style.display = 'flex';
+            }
+        });
+
+        // Function to close the lightbox
+        const closeLightbox = () => {
+            lightbox.style.display = 'none';
+            lightboxImg.src = ''; // Clear src to stop loading
+        };
+
+        // Close lightbox when clicking the close button or the overlay
+        closeBtn.addEventListener('click', closeLightbox);
+        lightbox.addEventListener('click', (e) => {
+            // Only close if the overlay itself is clicked, not the image
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        });
+    });
+    </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

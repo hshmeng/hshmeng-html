@@ -7,36 +7,48 @@
 ### 根目录
 - `app.py`: 项目入口文件。负责 Flask 应用的初始化、配置、蓝图注册、错误处理以及数据库表的初始化。
 - `requirements.txt`: 项目依赖列表。记录了运行本项目所需的 Python 库。
-- `logo.ico`: 网站图标文件（应放置在此处或 `html/` 下）。
 
 ### `python/` (后端逻辑)
-- [models.py](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/python/models.py): 数据库模型定义。包含用户、帖子、评论、点赞、收藏、打赏记录等表的结构定义。
-- [auth.py](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/python/auth.py): 用户认证蓝图。处理注册、登录、退出、修改密码及强制重置密码逻辑。
-- [main.py](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/python/main.py): 核心业务蓝图。处理首页展示、分页加载 API、文件上传下载及网站图标路由。
-- [post.py](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/python/post.py): 帖子相关蓝图。处理发帖、帖子详情、删除帖子、评论、点赞、收藏及打赏逻辑。
-- [profile.py](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/python/profile.py): 个人主页蓝图。处理个人空间展示、头像上传及每日签到逻辑。
-- [admin.py](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/python/admin.py): 管理员后台蓝图。处理用户管理、强制重置密码及积分增减逻辑。
-- [utils.py](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/python/utils.py): 工具函数。包含头像保存等通用逻辑。
+- `models.py`: 数据库模型定义。包含用户、帖子、评论、点赞、收藏、打赏记录等表的结构定义。
+- `auth.py`: 用户认证蓝图。处理注册、登录、退出、修改密码及强制重置密码逻辑。
+- `main.py`: 核心业务蓝图。处理首页展示、分页加载 API、文件上传下载及网站图标路由。
+- `post.py`: 帖子相关蓝图。处理发帖、帖子详情、删除帖子、评论、点赞、收藏及打赏逻辑。
+- `profile.py`: 个人主页蓝图。处理个人空间展示、头像上传及每日签到逻辑。
+- `admin.py`: 管理员后台蓝图。处理用户管理、强制重置密码及积分增减逻辑。
+- `utils.py`: 工具函数。重构了文件保存逻辑，通过 UUID 和提取真实扩展名确保文件名唯一且正确，解决了部分图片触发下载的问题。
 - `__init__.py`: 使 `python` 文件夹成为一个 Python 包。
 
 ### `html/` (前端模板)
-- [layout.html](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/html/layout.html): 基础布局模板。包含导航栏、全局样式和 JavaScript 脚本引用。
-- [index.html](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/html/index.html): 网站首页。展示社区动态（左侧）和官方新闻（右侧），支持下拉加载。
-- [login.html](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/html/login.html): 登录页面。
-- [register.html](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/html/register.html): 注册页面。
-- [profile.html](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/html/profile.html): 个人主页页面。分类展示动态、点赞和收藏，支持修改密码。
-- [post.html](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/html/post.html): 帖子详情页面。展示正文、打赏记录和评论区，包含点赞、收藏、打赏按钮。
-- [create_post.html](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/html/create_post.html): 发布动态/新闻页面。
-- [admin_users.html](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/html/admin_users.html): 管理员后台页面。展示用户列表并支持重置密码和积分管理。
-- [force_change_password.html](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/html/force_change_password.html): 强制修改密码页面。
-- [404.html](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/html/404.html): 页面未找到报错页。
-- [500.html](file:///c:/Users/HSHMENG/Desktop/hshmeng-html/html/500.html): 服务器内部错误报错页。
+- `layout.html`: 基础布局模板。包含导航栏、全局样式和 **自定义的图片全屏预览（Lightbox）功能** 的核心 HTML、CSS 和 JavaScript。
+- `index.html`: 网站首页。展示社区动态（左侧）和官方新闻（右侧），支持下拉加载。
+- `login.html`: 登录页面。
+- `register.html`: 注册页面。
+- `profile.html`: 个人主页页面。分类展示动态、点赞和收藏，支持修改密码。
+- `post.html`: 帖子详情页面。展示正文、打赏记录和评论区，通过特定的 class 触发 `layout.html` 中定义的 Lightbox 功能。
+- `create_post.html`: 发布动态/新闻页面。集成了图片上传时的 **实时预览和移除功能**。
+- `admin_users.html`: 管理员后台页面。展示用户列表并支持重置密码和积分管理。
+- `force_change_password.html`: 强制修改密码页面。
+- `404.html` / `500.html`: 错误页面。
+- `logo.ico`: 网站图标文件。
 
 ### `database/` (数据库)
 - `community.db`: SQLite 数据库文件，存储所有用户和社区数据。
 
 ### `uploads/` (上传文件)
-- 存储用户上传的个性化头像文件。
+- 存储用户上传的个性化头像文件及帖子附带的图片。
+
+## 功能特性
+- **用户系统**：注册、登录、个人主页、每日签到领积分。
+- **动态交流**：
+    - 发布动态（支持同时上传最多5张图片）。
+    - **发帖时图片实时预览**：在选择图片后，页面会显示缩略图，并支持单独移除不满意的图片。
+    - **帖子图片全屏预览**：在帖子详情页，点击图片会触发一个定制的、无依赖的 Lightbox 效果，实现带遮罩的全屏预览。
+    - 评论、点赞、收藏。
+- **打赏机制**：支持使用积分打赏喜欢的帖子。
+- **安全检查与健壮性**：
+    - 对上传的头像及帖子图片进行真实性分析，防止非图片文件上传。
+    - **文件名安全重构**：重写了文件上传逻辑，确保所有保存的图片都拥有唯一且正确的带点扩展名，从根本上解决了部分浏览器将图片识别为下载项的问题。
+- **管理员后台**：管理用户、重置密码、手动增减用户积分。
 
 ## 如何运行
 1. 安装依赖：`pip install -r requirements.txt`
