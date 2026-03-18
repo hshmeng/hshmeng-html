@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}游戏交流社区{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('main.favicon') }}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+        .card { border: none; border-radius: 10px; margin-bottom: 20px; transition: transform 0.2s; }
+        .btn-primary { border-radius: 20px; }
+        .avatar-sm { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+        .avatar-md { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
+        .points-badge { background-color: #ffc107; color: #000; font-weight: bold; border-radius: 10px; padding: 2px 8px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}">🎮 游戏交流平台</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.is_admin %}
+                            <li class="nav-item"><a class="nav-link text-warning fw-bold" href="{{ url_for('admin.manage_users') }}">后台管理</a></li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <form action="{{ url_for('profile.signin') }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-light btn-sm me-3">📅 签到领积分</button>
+                            </form>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('post.create_post') }}">发布帖子</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center" href="{{ url_for('profile.profile', username=current_user.username) }}">
+                                <img src="{{ url_for('main.uploaded_file', filename=current_user.avatar) if current_user.avatar != 'default.png' else 'https://ui-avatars.com/api/?name=' + current_user.username }}" class="avatar-sm me-2" title="查看我的主页">
+                                {{ current_user.username }} 
+                                <span class="ms-2 points-badge">💎 {{ current_user.points }}</span>
+                            </a>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">退出</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">登录</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.register') }}">注册</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

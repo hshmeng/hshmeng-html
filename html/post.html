@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ post.title }} - 游戏社区{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow-sm mt-5">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4 text-primary fw-bold">{{ post.title }}</h2>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <div class="d-flex align-items-center">
+                        <a href="{{ url_for('profile.profile', username=post.author.username) }}" title="访问 {{ post.author.username }} 的主页">
+                            <img src="{{ url_for('main.uploaded_file', filename=post.author.avatar) if post.author.avatar != 'default.png' else 'https://ui-avatars.com/api/?name=' + post.author.username }}" class="avatar-md me-3">
+                        </a>
+                        <div>
+                            <h6 class="mb-0 fw-bold"><a href="{{ url_for('profile.profile', username=post.author.username) }}" class="text-decoration-none text-dark">{{ post.author.username }}</a></h6>
+                            <small class="text-muted">发布于 {{ post.date_posted.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                    </div>
+                    <div>
+                        {% if current_user.is_authenticated and (current_user == post.author or current_user.is_admin) %}
+                            <form action="{{ url_for('post.delete_post', post_id=post.id) }}" method="POST" class="d-inline" onsubmit="return confirm('确定要删除这篇帖子吗？此操作不可恢复。');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger me-2">🗑️ 删除</button>
+                            </form>
+                        {% endif %}
+                        <a href="{{ url_for('main.index') }}" class="btn btn-sm btn-outline-secondary">返回首页</a>
+                    </div>
+                </div>
+
+                <div class="card-text mb-5" style="white-space: pre-wrap; font-size: 1.1rem; line-height: 1.8;">{{ post.content }}</div>
+
+                <!-- 交互按钮：点赞、收藏、打赏 -->
+                <div class="d-flex justify-content-center gap-3 mb-5 py-3 border-top border-bottom">
+                    <form action="{{ url_for('post.like_post', post_id=post.id) }}" method="POST">
+                        <button type="submit" class="btn {{ 'btn-danger' if user_liked else 'btn-outline-danger' }} rounded-pill px-4">
+                            ❤️ {{ '已点赞' if user_liked else '点赞' }} ({{ post.likes|length }})
+                        </button>
+                    </form>
+                    <form action="{{ url_for('post.favorite_post', post_id=post.id) }}" method="POST">
+                        <button type="submit" class="btn {{ 'btn-warning' if user_favorited else 'btn-outline-warning' }} rounded-pill px-4">
+                            ⭐ {{ '已收藏' if user_favorited else '收藏' }} ({{ post.favorites|length }})
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-outline-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#tipModal">
+                        💰 打赏积分
+                    </button>
+                </div>
+
+                <!-- 打赏记录 -->
+                <div class="mb-5">
+                    <h5 class="fw-bold mb-3">💎 打赏记录 ({{ post.tips|length }})</h5>
+                    {% if post.tips %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for tip in post.tips %}
+                                <div class="badge bg-light text-dark p-2 border shadow-sm d-flex align-items-center">
+                                    <a href="{{ url_for('profile.profile', username=tip.sender.username) }}" title="访问 {{ tip.sender.username }} 的主页">
+                                        <img src="{{ url_for('main.uploaded_file', filename=tip.sender.avatar) if tip.sender.avatar != 'default.png' else 'https://ui-avatars.com/api/?name=' + tip.sender.username }}" class="avatar-sm me-2" style="width: 20px; height: 20px;">
+                                    </a>
+                                    <span><a href="{{ url_for('profile.profile', username=tip.sender.username) }}" class="text-decoration-none text-dark">{{ tip.sender.username }}</a> 打赏了 <strong>{{ tip.amount }}</strong> 积分</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted small">暂无打赏记录，快来支持一下作者吧！</p>
+                    {% endif %}
+                </div>
+
+                <hr class="my-5">
+
+                <!-- 评论区 -->
+                <h4 class="mb-4 fw-bold">评论 ({{ post.comments|length }})</h4>
+                {% if post.comments %}
+                    {% for comment in post.comments %}
+                        <div class="mb-3 border-bottom pb-2">
+                            <div class="d-flex justify-content-between">
+                                <strong class="text-secondary">{{ comment.author.username }}</strong>
+                                <small class="text-muted">{{ comment.date_posted.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            <p class="mt-2">{{ comment.content }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted italic">还没有人评论，快来抢沙发吧！</p>
+                {% endif %}
+
+                {% if current_user.is_authenticated %}
+                    <form method="POST" action="{{ url_for('post.add_comment', post_id=post.id) }}" class="mt-5">
+                        <div class="mb-3">
+                            <label for="comment_content" class="form-label fw-bold">发表评论</label>
+                            <textarea name="content" class="form-control" id="comment_content" rows="3" placeholder="写下你的看法..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm px-4">提交评论</button>
+                    </form>
+                {% else %}
+                    <div class="alert alert-warning mt-5">
+                        请 <a href="{{ url_for('auth.login') }}">登录</a> 后发表评论。
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 打赏模态框 -->
+<div class="modal fade" id="tipModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">💰 打赏作者</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('post.tip_post', post_id=post.id) }}" method="POST">
+                <div class="modal-body text-center">
+                    <p>您的当前积分: <strong class="text-warning">{{ current_user.points if current_user.is_authenticated else 0 }}</strong></p>
+                    <div class="mb-3">
+                        <label class="form-label">请选择打赏积分数量</label>
+                        <div class="d-flex justify-content-center gap-2 mb-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm tip-opt" data-val="10">10</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm tip-opt" data-val="50">50</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm tip-opt" data-val="100">100</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm tip-opt" data-val="500">500</button>
+                        </div>
+                        <input type="number" name="amount" id="tipAmount" class="form-control text-center" placeholder="或输入自定义金额" min="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-target="#tipModal" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">确认打赏</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.tip-opt').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.getElementById('tipAmount').value = this.dataset.val;
+    });
+});
+</script>
+{% endblock %}

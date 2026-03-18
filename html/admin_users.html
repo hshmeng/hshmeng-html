@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block title %}用户管理 - 游戏社区{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4 fw-bold text-dark">👥 用户管理</h2>
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>用户信息</th>
+                                <th>发帖数</th>
+                                <th>当前积分</th>
+                                <th class="pe-4">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users %}
+                            <tr>
+                                <td class="ps-4">{{ u.id }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <a href="{{ url_for('profile.profile', username=u.username) }}" title="查看 {{ u.username }} 的主页">
+                                            <img src="{{ url_for('main.uploaded_file', filename=u.avatar) if u.avatar != 'default.png' else 'https://ui-avatars.com/api/?name=' + u.username }}" class="avatar-sm me-2" style="width: 32px; height: 32px;">
+                                        </a>
+                                        <a href="{{ url_for('profile.profile', username=u.username) }}" class="text-decoration-none text-dark fw-bold">{{ u.username }}</a>
+                                        {% if u.is_admin %}
+                                            <span class="badge bg-danger ms-2" style="font-size: 0.7rem;">管理员</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-secondary">{{ u.posts|length }}</span></td>
+                                <td><span class="badge bg-warning text-dark">💎 {{ u.points }}</span></td>
+                                <td class="pe-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <!-- 重置密码 -->
+                                        <form action="{{ url_for('admin.reset_password', user_id=u.id) }}" method="POST" onsubmit="return confirm('确定要将用户 {{ u.username }} 的密码重置为 123456 吗？');">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning">重置密码</button>
+                                        </form>
+                                        
+                                        <!-- 增减积分 -->
+                                        <form action="{{ url_for('admin.adjust_points', user_id=u.id) }}" method="POST" class="d-flex align-items-center gap-1">
+                                            <input type="number" name="amount" class="form-control form-control-sm" style="width: 80px;" min="1" placeholder="积分数" required>
+                                            <button type="submit" name="action" value="add" class="btn btn-sm btn-success" title="增加积分">+</button>
+                                            <button type="submit" name="action" value="sub" class="btn btn-sm btn-danger" title="扣除积分">-</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

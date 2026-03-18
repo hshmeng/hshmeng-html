@@ -1,0 +1,164 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <!-- 左侧：所有用户发布的帖子 -->
+    <div class="col-md-8">
+        <h2 class="fw-bold mb-4 text-dark">🌟 社区动态</h2>
+        <div id="posts-container">
+            {% for post in all_posts %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            {% if post.is_news %}
+                                <span class="badge bg-danger me-2">官方</span>
+                            {% endif %}
+                            <h4 class="card-title mb-0">
+                                <a href="{{ url_for('post.post_detail', post_id=post.id) }}" class="text-decoration-none text-dark fw-bold">{{ post.title }}</a>
+                            </h4>
+                        </div>
+                        <p class="card-text text-muted">{{ post.content[:300] }}{% if post.content|length > 300 %}...{% endif %}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                            <div class="d-flex align-items-center">
+                                <a href="{{ url_for('profile.profile', username=post.author.username) }}" title="访问 {{ post.author.username }} 的主页">
+                                    <img src="{{ url_for('main.uploaded_file', filename=post.author.avatar) if post.author.avatar != 'default.png' else 'https://ui-avatars.com/api/?name=' + post.author.username }}" class="avatar-sm me-2">
+                                </a>
+                                <small class="text-muted"><a href="{{ url_for('profile.profile', username=post.author.username) }}" class="text-decoration-none text-muted">{{ post.author.username }}</a> | {{ post.date_posted.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-light text-dark me-2">❤️ {{ post.likes|length }}</span>
+                                <span class="badge bg-light text-dark">💬 {{ post.comments|length }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div id="posts-loading" class="text-center d-none my-3">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+        <div class="text-center">
+            <button id="load-more-posts" class="btn btn-outline-primary btn-sm rounded-pill px-4 mb-5">加载更多动态</button>
+        </div>
+    </div>
+
+    <!-- 右侧：管理员发布的官方新闻 -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-danger border-top border-3">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold text-danger">📢 官方新闻</h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="news-container" class="list-group list-group-flush">
+                    {% for post in news_posts %}
+                        <div class="list-group-item p-3">
+                            <h6 class="fw-bold mb-1">
+                                <a href="{{ url_for('post.post_detail', post_id=post.id) }}" class="text-decoration-none text-dark">{{ post.title }}</a>
+                            </h6>
+                            <p class="small text-muted mb-2">{{ post.content[:80] }}...</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted" style="font-size: 0.7rem;">{{ post.date_posted.strftime('%m-%d %H:%M') }}</small>
+                                <span class="badge bg-light text-dark" style="font-size: 0.7rem;">💬 {{ post.comments|length }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div id="news-loading" class="text-center d-none my-2">
+                    <div class="spinner-border spinner-border-sm text-danger" role="status"></div>
+                </div>
+                <button id="load-more-news" class="btn btn-link btn-sm w-100 text-decoration-none text-danger py-2 border-top">查看更多新闻</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let postsPage = 1;
+let newsPage = 1;
+
+// 加载更多所有帖子
+document.getElementById('load-more-posts').addEventListener('click', function() {
+    postsPage++;
+    const btn = this;
+    const loading = document.getElementById('posts-loading');
+    
+    btn.classList.add('d-none');
+    loading.classList.remove('d-none');
+
+    fetch(`/api/posts?page=${postsPage}`)
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('posts-container');
+            data.posts.forEach(post => {
+                const adminBadge = post.is_admin ? '<span class="badge bg-danger me-2">官方</span>' : '';
+                const html = `
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                ${adminBadge}
+                                <h4 class="card-title mb-0">
+                                    <a href="/post/${post.id}" class="text-decoration-none text-dark fw-bold">${post.title}</a>
+                                </h4>
+                            </div>
+                            <p class="card-text text-muted">${post.content}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                <div class="d-flex align-items-center">
+                                    <a href="/profile/${post.author}" title="访问 ${post.author} 的主页">
+                                        <img src="${post.avatar}" class="avatar-sm me-2">
+                                    </a>
+                                    <small class="text-muted"><a href="/profile/${post.author}" class="text-decoration-none text-muted">${post.author}</a> | ${post.date}</small>
+                                </div>
+                                <div>
+                                    <span class="badge bg-light text-dark">💬 ${post.comments_count}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+            
+            loading.classList.add('d-none');
+            if (data.has_next) {
+                btn.classList.remove('d-none');
+            }
+        });
+});
+
+// 加载更多新闻
+document.getElementById('load-more-news').addEventListener('click', function() {
+    newsPage++;
+    const btn = this;
+    const loading = document.getElementById('news-loading');
+    
+    btn.classList.add('d-none');
+    loading.classList.remove('d-none');
+
+    fetch(`/api/news?page=${newsPage}`)
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('news-container');
+            data.news.forEach(post => {
+                const html = `
+                    <div class="list-group-item p-3">
+                        <h6 class="fw-bold mb-1">
+                            <a href="/post/${post.id}" class="text-decoration-none text-dark">${post.title}</a>
+                        </h6>
+                        <p class="small text-muted mb-2">${post.content.substring(0, 80)}...</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted" style="font-size: 0.7rem;">${post.date}</small>
+                            <span class="badge bg-light text-dark" style="font-size: 0.7rem;">💬 ${post.comments_count}</span>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+            
+            loading.classList.add('d-none');
+            if (data.has_next) {
+                btn.classList.remove('d-none');
+            }
+        });
+});
+</script>
+{% endblock %}

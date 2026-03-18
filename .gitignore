@@ -1,0 +1,5 @@
+uploads/
+database/community.db
+.hshmeng/
+.idea/
+__pycache__/
