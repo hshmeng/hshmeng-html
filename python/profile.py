@@ -47,8 +47,11 @@ def update_avatar():
     
     if file:
         filename = save_avatar(file)
-        current_user.avatar = filename
-        db.session.commit()
-        flash('头像更新成功！', 'success')
+        if filename:
+            current_user.avatar = filename
+            db.session.commit()
+            flash('头像更新成功！', 'success')
+        else:
+            flash('无效的图片文件，请上传真实的图片', 'danger')
     
     return redirect(url_for('profile.profile', username=current_user.username))
