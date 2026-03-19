@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from python.models import db, Post, Comment, Like, Favorite, Tip, User, PostImage
+from python.models import db, Post, Comment, Like, Favorite, Tip, User, PostImage, Notification
 from python.utils import save_post_images
 
 post_bp = Blueprint('post', __name__)
@@ -31,7 +31,7 @@ def create_post():
         db.session.commit()
         flash('发布成功！', 'success')
         return redirect(url_for('main.index') if is_news else url_for('profile.profile', username=current_user.username))
-    return render_template('create_post.html')
+    return render_template('post/create_post.html')
 
 @post_bp.route('/post/<int:post_id>')
 def post_detail(post_id):
@@ -43,7 +43,7 @@ def post_detail(post_id):
         user_liked = Like.query.filter_by(user_id=current_user.id, post_id=post.id).first() is not None
         user_favorited = Favorite.query.filter_by(user_id=current_user.id, post_id=post.id).first() is not None
     
-    return render_template('post.html', post=post, user_liked=user_liked, user_favorited=user_favorited)
+    return render_template('post/post.html', post=post, user_liked=user_liked, user_favorited=user_favorited)
 
 @post_bp.route('/post/<int:post_id>/comment', methods=['POST'])
 @login_required
@@ -71,6 +71,15 @@ def like_post(post_id):
     else:
         new_like = Like(user_id=current_user.id, post_id=post.id)
         db.session.add(new_like)
+        if post.user_id != current_user.id:
+            db.session.add(Notification(
+                user_id=post.user_id,
+                sender_id=current_user.id,
+                post_id=post.id,
+                type='like',
+                content=f'{current_user.username} 点赞了你的帖子《{post.title}》',
+                link=url_for('post.post_detail', post_id=post.id)
+            ))
         flash('点赞成功！', 'success')
     db.session.commit()
     return redirect(url_for('post.post_detail', post_id=post.id))
@@ -86,6 +95,15 @@ def favorite_post(post_id):
     else:
         new_fav = Favorite(user_id=current_user.id, post_id=post.id)
         db.session.add(new_fav)
+        if post.user_id != current_user.id:
+            db.session.add(Notification(
+                user_id=post.user_id,
+                sender_id=current_user.id,
+                post_id=post.id,
+                type='favorite',
+                content=f'{current_user.username} 收藏了你的帖子《{post.title}》',
+                link=url_for('post.post_detail', post_id=post.id)
+            ))
         flash('收藏成功！', 'success')
     db.session.commit()
     return redirect(url_for('post.post_detail', post_id=post.id))
@@ -114,6 +132,14 @@ def tip_post(post_id):
     
     new_tip = Tip(amount=amount, sender_id=current_user.id, receiver_id=post.user_id, post_id=post.id)
     db.session.add(new_tip)
+    db.session.add(Notification(
+        user_id=post.user_id,
+        sender_id=current_user.id,
+        post_id=post.id,
+        type='tip',
+        content=f'{current_user.username} 打赏了你 {amount} 积分（帖子《{post.title}》）',
+        link=url_for('post.post_detail', post_id=post.id)
+    ))
     db.session.commit()
     
     flash(f'打赏成功！打赏了 {amount} 积分', 'success')

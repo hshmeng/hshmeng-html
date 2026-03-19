@@ -1,0 +1,76 @@
+{% extends "base/layout.html" %}
+
+{% block title %}兑换订单 - 游戏社区{% endblock %}
+
+{% block content %}
+{% set status_name = {'need_address':'待填写地址','pending':'待处理','processing':'处理中','shipped':'已发货','fulfilled':'已完成','cancelled':'已取消'} %}
+<div class="row">
+    <div class="col-md-11 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+            <h3 class="fw-bold mb-0">📦 兑换订单</h3>
+            <div class="d-flex gap-2">
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.manage_users') }}">返回后台</a>
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.shop_products') }}">商品管理</a>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">订单</th>
+                                <th>用户</th>
+                                <th>商品</th>
+                                <th>数量</th>
+                                <th>消耗</th>
+                                <th>收货信息</th>
+                                <th>状态</th>
+                                <th class="pe-4">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for o in orders %}
+                                <tr>
+                                    <td class="ps-4">#{{ o.id }}</td>
+                                    <td>{{ o.user.username }}</td>
+                                    <td>{{ o.product.name }}</td>
+                                    <td>{{ o.quantity }}</td>
+                                    <td class="text-warning fw-bold">💎 {{ o.points_spent }}</td>
+                                    <td class="small text-muted">
+                                        {% if o.shipping_name %}
+                                            {{ o.shipping_name }} / {{ o.shipping_phone }}<br>
+                                            {{ o.shipping_address }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="badge bg-secondary">{{ status_name.get(o.status, o.status) }}</span></td>
+                                    <td class="pe-4">
+                                        <form method="POST" action="{{ url_for('admin.shop_order_status', order_id=o.id) }}" class="d-flex gap-1">
+                                            <select class="form-select form-select-sm" name="status" style="width: 130px;">
+                                                <option value="need_address" {% if o.status=='need_address' %}selected{% endif %}>待填写地址</option>
+                                                <option value="pending" {% if o.status=='pending' %}selected{% endif %}>待处理</option>
+                                                <option value="processing" {% if o.status=='processing' %}selected{% endif %}>处理中</option>
+                                                <option value="shipped" {% if o.status=='shipped' %}selected{% endif %}>已发货</option>
+                                                <option value="fulfilled" {% if o.status=='fulfilled' %}selected{% endif %}>已完成</option>
+                                                <option value="cancelled" {% if o.status=='cancelled' %}selected{% endif %}>已取消</option>
+                                            </select>
+                                            <button class="btn btn-sm btn-outline-primary" type="submit">更新</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">暂无订单</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

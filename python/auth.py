@@ -33,7 +33,7 @@ def register():
         db.session.commit()
         flash('注册成功，请登录！', 'success')
         return redirect(url_for('auth.login'))
-    return render_template('register.html')
+    return render_template('auth/register.html')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -49,7 +49,7 @@ def login():
             return redirect(url_for('main.index'))
         else:
             flash('用户名或密码错误', 'danger')
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
 @auth_bp.route('/logout')
 @login_required
@@ -97,4 +97,4 @@ def force_change_password():
             flash('密码修改成功，请继续使用！', 'success')
             return redirect(url_for('main.index'))
             
-    return render_template('force_change_password.html')
+    return render_template('auth/force_change_password.html')

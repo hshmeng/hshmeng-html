@@ -1,0 +1,155 @@
+{% extends "base/layout.html" %}
+
+{% block title %}商店商品管理 - 游戏社区{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-11 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+            <h3 class="fw-bold mb-0">🧰 商店商品管理</h3>
+            <div class="d-flex gap-2">
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.manage_users') }}">返回后台</a>
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.shop_orders') }}">查看订单</a>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">创建商品</h5>
+                <form method="POST">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <input class="form-control" name="name" placeholder="商品名称" required>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" name="kind" id="kind" required>
+                                <option value="virtual">虚拟</option>
+                                <option value="physical">实物</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2" id="virtualTypeWrap">
+                            <select class="form-select" name="virtual_type" id="virtual_type">
+                                <option value="">虚拟类型</option>
+                                <option value="title">称号</option>
+                                <option value="avatar_frame">头像框</option>
+                                <option value="profile_bg">主页背景</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2" id="titleTextWrap">
+                            <input class="form-control" name="title_text" placeholder="称号文本">
+                        </div>
+                        <div class="col-md-2" id="styleKeyWrap">
+                            <select class="form-select" name="style_key">
+                                <option value="">样式</option>
+                                <option value="red">红</option>
+                                <option value="orange">橙</option>
+                                <option value="yellow">黄</option>
+                                <option value="green">绿</option>
+                                <option value="cyan">青</option>
+                                <option value="blue">蓝</option>
+                                <option value="purple">紫</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input class="form-control" type="number" name="price_points" placeholder="价格(积分)" min="0" required>
+                        </div>
+                        <div class="col-md-2">
+                            <input class="form-control" type="number" name="stock" placeholder="库存(空=不限)" min="0">
+                        </div>
+                        <div class="col-md-2">
+                            <input class="form-control" type="number" name="max_per_user" placeholder="每人限购(空=不限)" min="1">
+                        </div>
+                        <div class="col-md-6">
+                            <input class="form-control" name="description" placeholder="描述">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="is_active" checked>
+                                <label class="form-check-label" for="is_active">上架</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" type="submit">创建</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>名称</th>
+                                <th>类型</th>
+                                <th>价格</th>
+                                <th>库存</th>
+                                <th>限购</th>
+                                <th>状态</th>
+                                <th class="pe-4">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in products %}
+                                <tr>
+                                    <td class="ps-4">{{ p.id }}</td>
+                                    <td>{{ p.name }}</td>
+                                    <td class="text-muted">{{ '虚拟' if p.kind == 'virtual' else '实物' }}{% if p.virtual_type %} / {{ p.virtual_type }}{% endif %}</td>
+                                    <td class="text-warning fw-bold">💎 {{ p.price_points }}</td>
+                                    <td>{% if p.stock is none %}不限{% else %}{{ p.stock }}{% endif %}</td>
+                                    <td>{% if p.max_per_user is none %}不限{% else %}{{ p.max_per_user }}{% endif %}</td>
+                                    <td>
+                                        {% if p.is_active %}
+                                            <span class="badge bg-success">上架</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">下架</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="pe-4">
+                                        <form method="POST" action="{{ url_for('admin.shop_product_toggle', product_id=p.id) }}" class="d-inline">
+                                            <button class="btn btn-sm btn-outline-secondary" type="submit">{% if p.is_active %}下架{% else %}上架{% endif %}</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">暂无商品</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const kind = document.getElementById('kind');
+    const virtualTypeWrap = document.getElementById('virtualTypeWrap');
+    const titleTextWrap = document.getElementById('titleTextWrap');
+    const styleKeyWrap = document.getElementById('styleKeyWrap');
+    const virtualType = document.getElementById('virtual_type');
+
+    const sync = () => {
+        const isVirtual = kind.value === 'virtual';
+        virtualTypeWrap.style.display = isVirtual ? '' : 'none';
+        if (!isVirtual) {
+            titleTextWrap.style.display = 'none';
+            styleKeyWrap.style.display = 'none';
+            return;
+        }
+        const vt = virtualType.value;
+        titleTextWrap.style.display = vt === 'title' ? '' : 'none';
+        styleKeyWrap.style.display = (vt === 'avatar_frame' || vt === 'profile_bg') ? '' : 'none';
+    };
+    kind.addEventListener('change', sync);
+    virtualType.addEventListener('change', sync);
+    sync();
+});
+</script>
+{% endblock %}

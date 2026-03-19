@@ -1,21 +1,26 @@
-{% extends "layout.html" %}
+{% extends "base/layout.html" %}
 
 {% block title %}{{ post.title }} - 游戏社区{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-8 mx-auto">
-        <div class="card shadow-sm mt-5">
+        <div class="card shadow-sm mt-5 {% if post.author.profile_bg %}profile-bg-{{ post.author.profile_bg }}{% endif %}">
             <div class="card-body p-4">
                 <h2 class="card-title text-center mb-4 text-primary fw-bold">{{ post.title }}</h2>
                 
                 <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                     <div class="d-flex align-items-center">
                         <a href="{{ url_for('profile.profile', username=post.author.username) }}" title="访问 {{ post.author.username }} 的主页">
-                            <img src="{{ url_for('main.uploaded_file', filename=post.author.avatar) if post.author.avatar != 'default.png' else 'https://ui-avatars.com/api/?name=' + post.author.username }}" class="avatar-md me-3">
+                            <img src="{{ url_for('main.uploaded_file', filename=post.author.avatar) if post.author.avatar != 'default.png' else 'https://ui-avatars.com/api/?name=' + post.author.username }}" class="avatar-md me-3 {% if post.author.avatar_frame %}avatar-frame-{{ post.author.avatar_frame }}{% endif %}">
                         </a>
                         <div>
-                            <h6 class="mb-0 fw-bold"><a href="{{ url_for('profile.profile', username=post.author.username) }}" class="text-decoration-none text-dark">{{ post.author.username }}</a></h6>
+                            <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                                <a href="{{ url_for('profile.profile', username=post.author.username) }}" class="text-decoration-none text-dark">{{ post.author.username }}</a>
+                                {% if post.author.title_text %}
+                                    <span class="badge bg-info text-dark">{{ post.author.title_text }}</span>
+                                {% endif %}
+                            </h6>
                             <small class="text-muted">发布于 {{ post.date_posted.strftime('%Y-%m-%d %H:%M') }}</small>
                         </div>
                     </div>

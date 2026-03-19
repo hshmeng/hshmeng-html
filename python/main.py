@@ -10,7 +10,7 @@ def index():
     all_posts = Post.query.order_by(Post.date_posted.desc()).limit(5).all()
     # 首页右侧显示管理员发布的公开新闻 (前5条)
     news_posts = Post.query.filter_by(is_news=True).order_by(Post.date_posted.desc()).limit(5).all()
-    return render_template('index.html', all_posts=all_posts, news_posts=news_posts)
+    return render_template('main/index.html', all_posts=all_posts, news_posts=news_posts)
 
 @main_bp.route('/uploads/<filename>')
 def uploaded_file(filename):

@@ -31,7 +31,7 @@ def profile(username):
     # 计算用户所有帖子获得的总赞数
     total_likes_received = sum(len(post.likes) for post in posts)
     
-    return render_template('profile.html', user=user, posts=posts, liked_posts=liked_posts, fav_posts=fav_posts, total_likes_received=total_likes_received)
+    return render_template('profile/profile.html', user=user, posts=posts, liked_posts=liked_posts, fav_posts=fav_posts, total_likes_received=total_likes_received)
 
 @profile_bp.route('/profile/update_avatar', methods=['POST'])
 @login_required

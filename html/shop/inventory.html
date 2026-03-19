@@ -1,0 +1,164 @@
+{% extends "base/layout.html" %}
+
+{% block title %}我的物品 - 游戏社区{% endblock %}
+
+{% block content %}
+{% set color_name = {'red':'红','orange':'橙','yellow':'黄','green':'绿','cyan':'青','blue':'蓝','purple':'紫'} %}
+{% set status_name = {'need_address':'待填写地址','pending':'待处理','processing':'处理中','shipped':'已发货','fulfilled':'已完成','cancelled':'已取消'} %}
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+            <h3 class="fw-bold mb-0">🎒 我的物品</h3>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('shop.shop_index') }}">返回商店</a>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">📦 实物兑换</h5>
+                        {% if physical_orders %}
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>商品</th>
+                                            <th>数量</th>
+                                            <th>状态</th>
+                                            <th>收货信息</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for o in physical_orders %}
+                                            <tr>
+                                                <td>{{ o.product.name }}</td>
+                                                <td>{{ o.quantity }}</td>
+                                                <td><span class="badge bg-secondary">{{ status_name.get(o.status, o.status) }}</span></td>
+                                                <td>
+                                                    {% if o.shipping_name and o.shipping_phone and o.shipping_address %}
+                                                        <div class="small text-muted">
+                                                            {{ o.shipping_name }} / {{ o.shipping_phone }}<br>
+                                                            {{ o.shipping_address }}
+                                                        </div>
+                                                    {% else %}
+                                                        <form method="POST" action="{{ url_for('shop.update_order_address', order_id=o.id) }}" class="d-flex flex-column gap-2">
+                                                            <input class="form-control form-control-sm" name="shipping_name" placeholder="收货人" required>
+                                                            <input class="form-control form-control-sm" name="shipping_phone" placeholder="手机号" required>
+                                                            <input class="form-control form-control-sm" name="shipping_address" placeholder="收货地址" required>
+                                                            <button class="btn btn-sm btn-outline-primary" type="submit">保存地址</button>
+                                                        </form>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-muted small">暂无实物兑换记录</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">称号</h5>
+                        {% if current_user.title_text %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-info text-dark">{{ current_user.title_text }}</span>
+                                <form method="POST" action="{{ url_for('shop.unequip') }}">
+                                    <input type="hidden" name="action" value="title">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">卸下</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                        {% if titles %}
+                            {% for p in titles %}
+                                <form method="POST" action="{{ url_for('shop.equip') }}" class="d-flex justify-content-between align-items-center mb-2">
+                                    <input type="hidden" name="product_id" value="{{ p.id }}">
+                                    <input type="hidden" name="action" value="title">
+                                    <div>{{ p.title_text or p.name }}</div>
+                                    {% if p.title_text and current_user.title_text == p.title_text %}
+                                        <span class="badge bg-success">已装备</span>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">装备</button>
+                                    {% endif %}
+                                </form>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted small">暂无</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">头像框</h5>
+                        {% if current_user.avatar_frame %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-secondary">{{ color_name.get(current_user.avatar_frame, current_user.avatar_frame) }}</span>
+                                <form method="POST" action="{{ url_for('shop.unequip') }}">
+                                    <input type="hidden" name="action" value="avatar_frame">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">卸下</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                        {% if frames %}
+                            {% for p in frames %}
+                                <form method="POST" action="{{ url_for('shop.equip') }}" class="d-flex justify-content-between align-items-center mb-2">
+                                    <input type="hidden" name="product_id" value="{{ p.id }}">
+                                    <input type="hidden" name="action" value="avatar_frame">
+                                    <div>{{ p.name }}</div>
+                                    {% if p.style_key and current_user.avatar_frame == p.style_key %}
+                                        <span class="badge bg-success">已装备</span>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">装备</button>
+                                    {% endif %}
+                                </form>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted small">暂无</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">主页背景</h5>
+                        {% if current_user.profile_bg %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-secondary">{{ color_name.get(current_user.profile_bg, current_user.profile_bg) }}</span>
+                                <form method="POST" action="{{ url_for('shop.unequip') }}">
+                                    <input type="hidden" name="action" value="profile_bg">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">卸下</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                        {% if bgs %}
+                            {% for p in bgs %}
+                                <form method="POST" action="{{ url_for('shop.equip') }}" class="d-flex justify-content-between align-items-center mb-2">
+                                    <input type="hidden" name="product_id" value="{{ p.id }}">
+                                    <input type="hidden" name="action" value="profile_bg">
+                                    <div>{{ p.name }}</div>
+                                    {% if p.style_key and current_user.profile_bg == p.style_key %}
+                                        <span class="badge bg-success">已装备</span>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">装备</button>
+                                    {% endif %}
+                                </form>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted small">暂无</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
